@@ -1,0 +1,129 @@
+dev0.vbus_voltage
+dump_errors(dev0)
+dev0.clear_errors()
+ค่าอนุรักษ์นิยมที่ 10mA 
+dev0.config.dc_max_negative_current 
+ดูกระแสมอเตอร์ที่สั่งด้วย dev0.axis0.motor.current_control.Iq_setpoint	[A]
+ดูกระแสมอเตอร์ที่วัดได้ด้วย dev0.axis0.motor.current_control.Iq_measured	[A] 
+dev0.erase_configuration()	: รีเซ็ตตัวแปรการกำหนดค่าเป็นค่าเริ่มต้นจากโรงงาน นี่เป็นการรีบูท
+dev0.axis0.motor.config.current_lim = 60 มีผลต่อการตั้ง pid หากมอเตอร์เริ่มสั่น lower the controller gains.
+
+dev0.axis0.motor.config.current_lim = 60
+dev0.axis0.motor.config.requested_current_range = 90
+dev0.save_configuration()
+dev0.reboot()
+
+
+dev0.axis0.motor.config.current_lim = 10
+dev0.axis0.motor.config.requested_current_range = 90
+dev0.save_configuration()
+dev0.reboot()
+
+มอเตอร์จะถูกจำกัดความเร็วนี้ในหน่วย [รอบ/วินาที]
+dev0.axis0.controller.config.vel_limit = 30
+dev0.axis0.motor.config.calibration_current = 17
+dev0.config.enable_brake_resistor = True
+dev0.save_configuration()
+dev0.reboot()
+
+มอเตอร์กระแสสูง ( MOTOR_TYPE_HIGH_CURRENT, [0] ) และมอเตอร์กิมบอล ( MOTOR_TYPE_GIMBAL, [2] )
+
+dev0.config.brake_resistance = 0.47
+dev0.axis0.motor.config.pole_pairs = 4
+dev0.axis0.motor.config.torque_constant = 0.137
+dev0.axis0.motor.config.motor_type = MOTOR_TYPE_HIGH_CURRENT
+dev0.axis0.encoder.config.cpr = 2500*4
+dev0.save_configuration()
+
+dev0.axis0.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
+dev0.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
+dev0.axis0.controller.input_pos = 1
+start_liveplotter(lambda:[dev0.axis0.encoder.pos_estimate, dev0.axis0.controller.pos_setpoint])
+
+dev0.axis0.trap_traj.config.vel_limit = 2
+dev0.axis0.trap_traj.config.accel_limit = 0.5
+dev0.axis0.trap_traj.config.decel_limit = 0.5 
+dev0.axis0.controller.config.inertia = 0
+
+vel_limitคือความเร็ววิถีสูงสุดที่วางแผนไว้ นี่เป็นการตั้งค่าความเร็วการเคลื่อนตัวของคุณ
+accel_limitคือความเร่งสูงสุดเป็นรอบ / วินาที^2
+decel_limitคือความหน่วงสูงสุดในรอบ / วินาที^2
+controller.config.inertiaคือค่าที่สัมพันธ์กับความเร่ง (เป็นรอบ / วินาที^2) และแรงบิดของมอเตอร์ เป็น 0 โดยค่าเริ่มต้น เป็นทางเลือก แต่สามารถปรับปรุงการตอบสนองของระบบของคุณได้หากปรับอย่างถูกต้อง โปรดทราบว่าสิ่งนี้จะต้องเปลี่ยนแปลงตามโหลด/มวลของระบบของคุณ
+
+PID
+current_gainและcurrent_integrator_gainจะถูกตั้งค่าโดยอัตโนมัติตามmotor.config.current_control_bandwidth
+dev0.axis0.controller.config.pos_gain = 20.200000762939453
+dev0.axis0.controller.config.vel_gain = 1
+dev0.axis0.controller.config.vel_integrator_gain = 0.2 * 10 *dev0.axis0.controller.config.vel_gain
+dev0.axis0.controller.config.vel_integrator_gain = 0.5 * 10 *dev0.axis0.controller.config.vel_gain
+start_liveplotter(lambda:[odrv0.axis0.encoder.vel_estimate, odrv0.axis0.controller.vel_setpoint])
+
+ตำแหน่งตัวเข้ารหัส
+dev0.axis0.encoder.vel_estimate
+
+Encoder With Index Signal
+dev0.axis0.encoder.config.use_index = True
+dev0.axis0.requested_state = AXIS_STATE_ENCODER_INDEX_SEARCH
+dev0.axis0.requested_state = AXIS_STATE_ENCODER_OFFSET_CALIBRATION
+
+dev0.axis0.error				ควรเป็น 0
+dev0.axis0.encoder.config.phase_offset		ควรพิมพ์ตัวเลข เช่น -326 หรือ 1364
+dev0.axis0.encoder.config.direction		 สิ่งนี้ควรพิมพ์ 1 หรือ -1
+
+dev0.axis0.encoder.config.pre_calibrated = True
+dev0.axis0.config.startup_encoder_index_search  = True
+dev0.axis0.motor.config.pre_calibrated = True
+dev0..save_configuration()
+
+หากมอเตอร์ของคุณมีปัญหาในการไปถึงตำแหน่งดัชนีเนื่องจากภาระทางกล คุณสามารถเพิ่ม<axis>.motor.config.calibration_current ได้
+
+
+ช่วยผ่อนคลายความแม่นยำของการนับตัวเข้ารหัสระหว่างการสอบเทียบ
+dev0.axis0.encoder.config.calib_range = 0.05     
+
+dev0.axis0.encoder.config.mode = ENCODER_MODE_INCREMENTAL 
+dev0.axis0.encoder.config.calib_range = 0.05     
+                        
+dev0.axis0.motor.config.calibration_current = 7.0
+dev0.axis0.motor.config.resistance_calib_max_voltage = 12.0
+dev0.axis0.controller.config.vel_limit = 5
+dev0.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
+dev0.axis0.controller.input_vel = 1.5
+
+dev0.axis0.requested_state = AXIS_STATE_IDLE
+dev0.axis0.encoder.config.pre_calibrated = True
+dev0.axis0.motor.config.pre_calibrated  = True
+dev0.axis0.encoder.config.pre_calibrated
+dev0.save_configuration()
+dev0.reboot()
+
+dev0.axis0.requested_state = AXIS_STATE_ENCODER_INDEX_SEARCH
+dev0.axis0.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
+dev0.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
+dev0.axis0.encoder.shadow_count
+dev0.axis0
+dev0.axis0
+dev0.axis0
+dev0.axis0
+dev0.axis0
+dev0.axis0
+dev0.axis0
+
+dev0.save_configuration()
+dev0.reboot()
+dev0.
+
+dev0.
+dev0.
+dev0.
+dev0.
+dev0.
+dev0.
+dev0.
+dev0.
+dev0.
+dev0.
+dev0.
+dev0.
+dev0.
+dev0.
